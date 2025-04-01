@@ -1,6 +1,7 @@
 using DAL.Context;
 using Infrastructure.Interfaces;
 using Infrastructure.Mapping;
+using Infrastructure.SafetyService;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Mapper));
 builder.Services.AddScoped<IServersControleService, ServersControleService>();
+builder.Services.AddSingleton<Safety>();
 
 builder.Services.AddDbContext<VpnDbContext>(option => option.UseNpgsql("Host=localhost;Port=5432;Database=vpndb;Username=postgres;Password=1234"));
 
