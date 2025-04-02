@@ -13,6 +13,19 @@ public class Server
     public int Id { get; set; }
     
     /// <summary>
+    /// Админский логин сервера
+    /// </summary>
+    [MaxLength(50)]
+    [Comment("Админский логин сервера")]
+    public string Login { get; set; }
+    
+    /// <summary>
+    /// Хэшированный админский пароль сервера
+    /// </summary>
+    [MaxLength(50)]
+    [Comment("Хэшированный админский пароль сервера")]
+    public string HashPassword { get; set; }
+    /// <summary>
     /// Ссылка на сервер к которому привязан пользоваетль.
     /// </summary>
     [MaxLength(100)]

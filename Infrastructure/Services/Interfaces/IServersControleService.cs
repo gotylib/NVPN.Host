@@ -10,12 +10,19 @@ public interface IServersControleService
     /// </summary>
     /// <param name="server">Модель сервера</param>
     /// <returns>Результат добавления</returns>
-    bool AddServer(ServerDto server);
+    Task<bool> AddServerAsync(ServerDto server);
     
     /// <summary>
     /// Удаление сервера vpn.
     /// </summary>
-    /// <param name="server">Модель сервера</param>
+    /// <param name="id">Id сервера</param>
     /// <returns>Результат удаления</returns>
-    bool RemoveServer(ServerDto server);
+    Task<bool> RemoveServerAsync(int id);
+    
+    /// <summary>
+    /// Обновить сервер vpn.
+    /// </summary>
+    /// <param name="server">Модель сервера</param>
+    /// <returns>Результат обновления</returns>
+    Task<bool> UpdateServerAsync(ServerDto server);
 }

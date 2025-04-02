@@ -17,9 +17,21 @@ public class ServerController : ControllerBase
         _serversControleService = serversControleService;
     }
     
-    [HttpGet("AddServer")]
-    public ActionResult AddServer()
+    [HttpPost("AddServer")]
+    public async Task<ActionResult> AddServer(ServerDto server)
     {
-        return Ok("Hello");
+        return await _serversControleService.AddServerAsync(server) ? Ok() : BadRequest();
+    }
+
+    [HttpPut("UpdateServer")]
+    public async Task<ActionResult> UpdateServer(ServerDto server)
+    {
+        return await _serversControleService.UpdateServerAsync(server) ? Ok() : BadRequest();
+    }
+        
+    [HttpDelete("RemoveServer")]
+    public async Task<ActionResult> DeleteServer(int id)
+    {
+        return await _serversControleService.RemoveServerAsync(id) ? Ok() : BadRequest();
     }
 }
