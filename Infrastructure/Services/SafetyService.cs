@@ -1,6 +1,6 @@
 namespace Infrastructure.SafetyService;
 
-public class Safety
+public class SafetyService
 {
     public Guid AdminKey { get; set; }
     

@@ -2,6 +2,7 @@
 using DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DAL.Migrations
 {
     [DbContext(typeof(VpnDbContext))]
-    partial class VpnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250402174325_AddSaltToUSerAndServer")]
+    partial class AddSaltToUSerAndServer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,8 +47,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Salt")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasComment("Случайная строка, которая добавляется к паролю для того, чтьо бы одинаковые пароли были с разным хэшем.");
 
                     b.Property<string>("ServerName")
@@ -79,8 +82,8 @@ namespace DAL.Migrations
 
                     b.Property<string>("Salt")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
                         .HasComment("Случайная строка, которая добавляется к паролю для того, чтьо бы одинаковые пароли были с разным хэшем.");
 
                     b.Property<string>("ServerName")

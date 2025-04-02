@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Entities;
 
+/// <summary>
+/// Пользователь.
+/// </summary>
 public class User
 {
     /// <summary>
@@ -26,6 +29,13 @@ public class User
     public string? HashPassword { get; set; }
     
     /// <summary>
+    /// Случайная строка, которая добавляется к паролю для того, чтьо бы одинаковые пароли были с разным хэшем.
+    /// </summary>
+    [MaxLength(32)]
+    [Comment("Случайная строка, которая добавляется к паролю для того, чтьо бы одинаковые пароли были с разным хэшем.")]
+    public string Salt { get; set; }
+    
+    /// <summary>
     /// Vless ссылки на vpn.
     /// </summary>
     [MaxLength(100)]
@@ -45,5 +55,4 @@ public class User
     [MaxLength(100)]
     [Comment("Email пользователя.")]
     public string? Email { get; set; }
-    
 }

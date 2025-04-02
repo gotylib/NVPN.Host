@@ -3,6 +3,8 @@ using DAL.Context;
 using DAL.Entities;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
+using Infrastructure.AnswerObjects;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
@@ -29,7 +31,6 @@ public class ServersControleService : IServersControleService
             var serverEntity = _mapper.Map<Server>(server);
             _context.Servers.Add(serverEntity);
             await _context.SaveChangesAsync();
-            throw new InvalidOperationException("Это тестовое исключение для проверки логирования.");
             return true;
         }
         catch (Exception ex)
@@ -39,23 +40,23 @@ public class ServersControleService : IServersControleService
         }
     }
 
-    public async Task<bool> RemoveServerAsync(int id)
+    public async Task<ResultModel<object, Exception>> RemoveServerAsync(int id)
     {
         try
         {
             var server = await _context.Servers.FindAsync(id);
             if (server == null)
             {
-                return true;
+               return ResultModel<object, Exception>.CreateFailedResult();
             }
 
             _context.Servers.Remove(server);
             await _context.SaveChangesAsync();
-            return true;
+            return ResultModel<object, Exception>.CreateSuccessfulResult();
         }
         catch (Exception ex)
         {
-            return false;   
+            return ResultModel<object, Exception>.CreateFailedResult(ex);
         }
     }
 
@@ -78,6 +79,7 @@ public class ServersControleService : IServersControleService
         {
             return false;
         }
-        
     }
+    
+    
 }

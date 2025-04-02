@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "Новый профиль",
+    "Projects": [
+      {
+        "Path": "NVPN.Host.Server\\NVPN.Host.Server.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
