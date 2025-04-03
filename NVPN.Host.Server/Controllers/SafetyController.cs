@@ -10,22 +10,22 @@ namespace NVPN.Host.Server.Controllers;
 [Route("[controller]")]
 public class SafetyController: ControllerBase
 {
-    private readonly Safety _safety;
+    private readonly SafetyService _safetyService;
     
-    public SafetyController(Safety safety)
+    public SafetyController(SafetyService safetyService)
     {
-        _safety = safety;
+        _safetyService = safetyService;
     }
 
     [HttpGet("GenerateAdminKey")]
     public ActionResult<Guid> GenerateAdminKey()
     {
-        if (_safety.IsGenerate)
+        if (_safetyService.IsGenerate)
         {
             return BadRequest("Admin Key is already generated");
         }
-        _safety.AdminKey = Guid.NewGuid();
-        _safety.IsGenerate = true;
-        return Ok(_safety.AdminKey);
+        _safetyService.AdminKey = Guid.NewGuid();
+        _safetyService.IsGenerate = true;
+        return Ok(_safetyService.AdminKey);
     }
 }

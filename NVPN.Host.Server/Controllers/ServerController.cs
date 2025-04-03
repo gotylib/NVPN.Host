@@ -32,6 +32,12 @@ public class ServerController : ControllerBase
     [HttpDelete("RemoveServer")]
     public async Task<ActionResult> DeleteServer(int id)
     {
-        return await _serversControleService.RemoveServerAsync(id) ? Ok() : BadRequest();
+        var result = await _serversControleService.RemoveServerAsync(id);
+        
+        if (result.IsSuccessful) return Ok();
+        
+        if(result is { IsSuccessful: false, Error: null }) return BadRequest("Такого сервера нет.");
+        
+        return StatusCode(500);
     }
 }

@@ -26,4 +26,4 @@ jobs:
       run: dotnet build NVPN.Host.sln --configuration Release --no-restore
 
     - name: Test
-      run: dotnet test NVPN.Host.sln --no-build --verbosity normal
+      run: dotnet test NVPN.Host.sln --verbosity normal

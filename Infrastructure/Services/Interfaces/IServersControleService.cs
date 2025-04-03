@@ -1,4 +1,5 @@
 using DAL.Entities;
+using Infrastructure.AnswerObjects;
 using Infrastructure.Dto;
 
 namespace Infrastructure.Interfaces;
@@ -17,7 +18,7 @@ public interface IServersControleService
     /// </summary>
     /// <param name="id">Id сервера</param>
     /// <returns>Результат удаления</returns>
-    Task<bool> RemoveServerAsync(int id);
+    Task<ResultModel<object, Exception>> RemoveServerAsync(int id);
     
     /// <summary>
     /// Обновить сервер vpn.
