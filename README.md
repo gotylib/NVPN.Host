@@ -1,1 +1,1 @@
-Host для vpn
+Host для vpn.
