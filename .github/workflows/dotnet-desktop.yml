@@ -65,7 +65,7 @@ jobs:
         sudo systemctl enable --now docker
         sudo curl -fsSL https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
-        docker-compose --version
+        docker-compose --versio
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
