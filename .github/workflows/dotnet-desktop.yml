@@ -8,7 +8,7 @@ on:
 
 env:
   DOCKER_COMPOSE_VERSION: v2.24.5
-  POSTGRES_PASSWORD: 1234
+  POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
   PROJECT_DIR: "/root/NVPN.Host"
 
 jobs:
@@ -19,20 +19,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Установка .NET
+    # Use .NET 8.0 (LTS) instead of 9.x
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.x
+        dotnet-version: 8.0.x
 
-    # Бэкенд
+    # Backend build and test
     - name: Build and test backend
       run: |
         find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet restore {} \;
         find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet build {} --configuration Release --no-restore \;
         find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet test {} --verbosity normal \;
 
-    # Фронтенд
+    # Frontend setup
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -63,8 +63,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y docker.io
         sudo systemctl enable --now docker
-        sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo curl -fsSL https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
+        docker-compose --version
 
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
@@ -76,10 +77,10 @@ jobs:
     - name: Build and push Docker images
       run: |
         docker-compose -f compose.yaml build
-        docker-compose push
+        docker-compose -f compose.yaml push
 
     - name: Deploy to production
-      uses: appleboy/ssh-action@v2
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USER }}
@@ -90,10 +91,9 @@ jobs:
           echo "Starting deployment..."
           cd $PROJECT_DIR || exit
           git config --global --add safe.directory $PROJECT_DIR
-          git fetch origin main
-          git reset --hard origin/main
+          git pull origin main
           docker-compose down --remove-orphans
           docker-compose pull
-          docker-compose up -d
-          docker system prune -f
+          docker-compose up -d --build
+          docker system prune -af
           echo "Deployment completed successfully!"
