@@ -63,6 +63,7 @@ jobs:
 
     - name: Install Docker tools
       run: |
+        sudo apt-get remove -y containerd
         sudo apt-get update
         sudo apt-get install -y docker.io
         sudo systemctl enable --now docker
