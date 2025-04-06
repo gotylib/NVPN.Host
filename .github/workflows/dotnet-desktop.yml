@@ -89,24 +89,26 @@ jobs:
           ls -lh docker-images/
   
       - name: Upload images to server
-        uses: appleboy/scp-action@v1
+        uses: actions/upload-artifact@v3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: root
-          password: ${{ secrets.SERVER_SSH_KEY }}
-          source: "docker-images/images.tar"
-          target: "/tmp/"
+          name: docker-images
+          path: docker-images/images.tar
   
-      - name: Load images on server
-        uses: appleboy/ssh-action@v1
+      - name: Download and deploy on server
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: root
-          password: ${{ secrets.SERVER_SSH_KEY }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            echo "Downloading Docker images..."
+            mkdir -p /tmp/docker-images
+            curl -L -o /tmp/images.tar "https://nightly.link/${{ github.repository }}/actions/artifacts/${{ github.run_id }}.zip"
+            unzip /tmp/images.tar -d /tmp/docker-images/
+            
             echo "Loading Docker images..."
-            docker load -i /tmp/images.tar
-            rm /tmp/images.tar
+            docker load -i /tmp/docker-images/images.tar
+            rm -rf /tmp/docker-images /tmp/images.tar
             
             echo "Starting containers..."
             cd $PROJECT_DIR
