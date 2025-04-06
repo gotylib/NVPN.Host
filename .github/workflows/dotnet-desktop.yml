@@ -1,123 +1,109 @@
 name: CI/CD Pipeline
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-env:
-  DOCKER_COMPOSE_VERSION: v2.24.5
-  POSTGRES_PASSWORD: 1234
-  PROJECT_DIR: "/root/NVPN.Host"
-
-jobs:
-  build_and_test:
-    name: Build and Test
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.x
-
-    - name: Build and test backend
-      run: |
-        find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet restore {} \;
-        find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet build {} --configuration Release --no-restore \;
-        find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet test {} --verbosity normal \;
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
-
-    - name: Cache Node modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          ./nvpn-host-client/node_modules
-          ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('./nvpn-host-client/package-lock.json') }}
-
-    - name: Install and build frontend
-      working-directory: ./nvpn-host-client
-      run: |
-        npm ci --no-audit
-        npm run build
-        npm run lint --if-present
-        npm test --if-present
-
-  deploy:
-    name: Deploy to Production
-    needs: build_and_test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install Docker tools
-      run: |
-        # Полная очистка всех Docker-компонентов
-        sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
-        sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
-        sudo rm -rf /var/lib/docker
-        sudo rm -rf /var/lib/containerd
-        
-        # Установка зависимостей
-        sudo apt-get update
-        sudo apt-get install -y ca-certificates curl gnupg
-        
-        # Добавление официального GPG-ключа Docker
-        sudo install -m 0755 -d /etc/apt/keyrings
-        sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-        sudo chmod a+r /etc/apt/keyrings/docker.asc
-        
-        # Добавление репозитория Docker
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        # Установка Docker
-        sudo apt-get update
-        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-        
-        # Установка Docker Compose
-        sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-        
-        # Запуск Docker
-        sudo systemctl enable --now docker
-    
-    - name: Build and push images
-      run: |
-        # Логинимся в Docker Hub (если используете)
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-        
-        # Собираем образы
-        docker-compose -f compose.yaml build
-        
-        # Пушим образы (если используете реестр)
-        docker-compose -f compose.yaml push || echo "Push skipped"
-
-    - name: Deploy to server
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-      run: |
-        mkdir -p ~/.ssh
-        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        
-        # Копируем файлы на сервер
-        scp -o StrictHostKeyChecking=no -r . root@${{ secrets.SERVER_HOST }}:$PROJECT_DIR
-        
-        # Запускаем deployment на сервере
-        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "
-          cd $PROJECT_DIR
-          docker-compose down --remove-orphans
-          docker-compose up -d --build
-          docker system prune -f
-        "
+ 
+ on:
+   push:
+     branches: [ "main" ]
+   pull_request:
+     branches: [ "main" ]
+ 
+ env:
+   DOCKER_COMPOSE_VERSION: v2.24.5
+   POSTGRES_PASSWORD: 1234
+   PROJECT_DIR: "/root/NVPN.Host"
+ 
+ jobs:
+   build_and_test:
+     name: Build and Test
+     runs-on: ubuntu-latest
+     steps:
+     - name: Checkout code
+       uses: actions/checkout@v4
+ 
+     # Установка .NET
+     - name: Setup .NET
+       uses: actions/setup-dotnet@v4
+       with:
+         dotnet-version: 9.x
+ 
+     # Бэкенд
+     - name: Build and test backend
+       run: |
+         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet restore {} \;
+         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet build {} --configuration Release --no-restore \;
+         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet test {} --verbosity normal \;
+ 
+     # Фронтенд
+     - name: Setup Node.js
+       uses: actions/setup-node@v4
+       with:
+         node-version: 18
+ 
+     - name: Cache Node modules
+       id: npm-cache
+       uses: actions/cache@v3
+       with:
+         path: |
+           ./nvpn-host-client/node_modules
+           ~/.npm
+         key: ${{ runner.os }}-node-${{ hashFiles('./nvpn-host-client/package-lock.json') }}
+         restore-keys: |
+           ${{ runner.os }}-node-
+ 
+     - name: Install and build frontend
+       working-directory: ./nvpn-host-client
+       run: |
+         npm ci --no-audit
+         npm run build
+         npm run lint --if-present
+         npm test --if-present
+ 
+     # Проверка структуры файлов для отладки
+     - name: Debug frontend structure
+       working-directory: ./nvpn-host-client
+       run: ls -la
+ 
+   deploy:
+     name: Deploy to Production
+     needs: build_and_test
+     if: github.ref == 'refs/heads/main'
+     runs-on: ubuntu-latest
+ 
+     steps:
+     - name: Checkout code
+       uses: actions/checkout@v4
+ 
+     - name: Install Docker tools
+       run: |
+         curl -fsSL https://get.docker.com -o get-docker.sh
+         sudo sh get-docker.sh
+         # Устанавливаем Docker Compose
+         sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+         sudo chmod +x /usr/local/bin/docker-compose
+         # Проверяем установку
+         docker --version
+         docker-compose --version
+ 
+     - name: Build Docker images
+       run: |
+         docker-compose -f compose.yaml build
+         docker images
+ 
+     - name: Deploy to production
+       uses: appleboy/ssh-action@v1
+       with:
+         host: ${{ secrets.SERVER_HOST }}
+         username: root
+         key: ${{ secrets.SERVER_SSH_KEY }}
+         password: ${{ secrets.SERVER_SSH_KEY }}
+         script_timeout: 10m
+         envs: PROJECT_DIR
+         script: |
+           echo "Starting deployment..."
+           cd $PROJECT_DIR
+           git config --global --add safe.directory $PROJECT_DIR
+           git fetch origin main
+           git reset --hard origin/main
+           docker-compose down --remove-orphans
+           docker-compose up -d --build
+           docker system prune -f
+           echo "Deployment completed successfully!"
