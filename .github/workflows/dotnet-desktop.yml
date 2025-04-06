@@ -67,42 +67,49 @@ jobs:
     needs: build_and_test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    
+  
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install Docker tools
-      run: |
-        curl -fsSL https://get.docker.com -o get-docker.sh
-        sudo sh get-docker.sh
-        # Устанавливаем Docker Compose
-        sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        sudo chmod +x /usr/local/bin/docker-compose
-        # Проверяем установку
-        docker --version
-        docker-compose --version
-
-    - name: Build Docker images
-      run: |
-        docker-compose -f compose.yaml build
-        docker images
-
-    - name: Deploy to production
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: root
-        password: ${{ secrets.SERVER_SSH_KEY }}
-        script_timeout: 10m
-        envs: PROJECT_DIR
-        script: |
-          echo "Starting deployment..."
-          cd $PROJECT_DIR
-          git config --global --add safe.directory $PROJECT_DIR
-          git fetch origin main
-          git reset --hard origin/main
-          docker-compose down --remove-orphans
-          docker-compose up -d --build
-          docker system prune -f
-          echo "Deployment completed successfully!"
+      - name: Checkout code
+        uses: actions/checkout@v4
+  
+      - name: Install Docker tools
+        run: |
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
+          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+  
+      - name: Build and save Docker images
+        run: |
+          docker-compose -f compose.yaml build
+          
+          # Сохраняем образы в архив
+          mkdir -p docker-images
+          docker save $(docker-compose -f compose.yaml config | awk '{if ($1 == "image:") print $2}') -o docker-images/images.tar
+          ls -lh docker-images/
+  
+      - name: Upload images to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-images/images.tar"
+          target: "/tmp/"
+  
+      - name: Load images on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          password: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Loading Docker images..."
+            docker load -i /tmp/images.tar
+            rm /tmp/images.tar
+            
+            echo "Starting containers..."
+            cd $PROJECT_DIR
+            docker-compose down --remove-orphans
+            docker-compose up -d
+            docker system prune -f
