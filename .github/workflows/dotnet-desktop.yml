@@ -1,4 +1,4 @@
-name: Build, Test and Deploy
+name: CI/CD Pipeline
 
 on:
   push:
@@ -9,9 +9,11 @@ on:
 env:
   DOCKER_COMPOSE_VERSION: v2.24.5
   POSTGRES_PASSWORD: 1234
+  PROJECT_DIR: "/root/NVPN.Host"  # Путь на сервере
 
 jobs:
-  ci:
+  build_and_test:
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -23,56 +25,67 @@ jobs:
       with:
         dotnet-version: 9.x
 
-    # Сборка и тесты бэкенда
+    # Сборка и тесты бэкенда (только .NET проекты)
     - name: Build and test backend
       run: |
-        dotnet restore NVPN.Host.sln
-        dotnet build NVPN.Host.sln --configuration Release --no-restore
-        dotnet test NVPN.Host.sln --verbosity normal
+        # Ищем все .csproj файлы, исключая фронтенд
+        find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet restore {} \;
+        find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet build {} --configuration Release --no-restore \;
+        find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet test {} --verbosity normal \;
 
-    # Установка Node.js для фронтенда
+    # Фронтенд (React)
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 18
         cache: 'npm'
 
-    # Установка зависимостей и тесты фронтенда
-    - name: Install and test frontend
+    - name: Install and build frontend
       working-directory: ./nvpn-host-client
       run: |
-        npm install
+        npm ci
         npm run build
-        npm test --if-present  # Запуск тестов, если они есть
+        npm run lint --if-present
+        npm test --if-present
 
   deploy:
-    needs: ci
-    if: github.ref == 'refs/heads/main'  # Только для main ветки
+    name: Deploy to Production
+    needs: build_and_test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Установка Docker Compose
-    - name: Install Docker Compose
+    - name: Install Docker tools
       run: |
-        sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl enable --now docker
+        sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
 
-    # Сборка Docker образов
-    - name: Build Docker images
+    - name: Build and verify Docker images
       run: |
         docker-compose -f compose.yaml build
+        docker images
 
-    # Деплой на сервер через SSH
-    - name: Deploy to production
+    - name: Secure deploy to production
       uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: root
         key: ${{ secrets.SERVER_SSH_KEY }}
+        script_timeout: 10m
+        envs: PROJECT_DIR
         script: |
-          cd /root/NVPN.Host
-          git pull origin main
-          docker-compose down
+          echo "Starting deployment..."
+          cd $PROJECT_DIR
+          git config --global --add safe.directory $PROJECT_DIR
+          git fetch origin main
+          git reset --hard origin/main
+          docker-compose down --remove-orphans
           docker-compose up -d --build
+          docker system prune -f
+          echo "Deployment completed successfully!"
