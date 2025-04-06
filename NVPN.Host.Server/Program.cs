@@ -41,7 +41,8 @@ try
     //     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     //     .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
     builder.Configuration.AddEnvironmentVariables();
-    var connectionString =  "Host=localhost;Port=5432;Database=vpndb;Username=postgres;Password=1234";
+    var connectionStringDefault =  "Host=localhost;Port=5432;Database=vpndb;Username=postgres;Password=1234";
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? connectionStringDefault;
 
     builder.Services.AddCors(options => 
     {
