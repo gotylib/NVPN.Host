@@ -9,7 +9,7 @@ on:
 env:
   DOCKER_COMPOSE_VERSION: v2.24.5
   POSTGRES_PASSWORD: 1234
-  PROJECT_DIR: "/root/NVPN.Host"  # Путь на сервере
+  PROJECT_DIR: "/root/NVPN.Host"
 
 jobs:
   build_and_test:
@@ -18,32 +18,36 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        path: 'src'  # Ключевое изменение - кладём всё в src/
 
-    # Установка .NET для бэкенда
+    # Установка .NET
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.x
 
-    # Сборка и тесты бэкенда (только .NET проекты)
+    # Бэкенд
     - name: Build and test backend
+      working-directory: ./src
       run: |
-        # Ищем все .csproj файлы, исключая фронтенд
-        find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet restore {} \;
-        find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet build {} --configuration Release --no-restore \;
-        find . -name "*.csproj" -not -path "*/nvpn-host-client/*" -exec dotnet test {} --verbosity normal \;
+        find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet restore {} \;
+        find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet build {} --configuration Release --no-restore \;
+        find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet test {} --verbosity normal \;
 
-    # Фронтенд (React)
+    # Фронтенд
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 18
         cache: 'npm'
+        cache-dependency-path: 'src/nvpn-host-client-ts/package-lock.json'
 
     - name: Install and build frontend
-      working-directory: ./nvpn-host-client
+      working-directory: ./src/nvpn-host-client-ts
       run: |
-        npm ci
+        ls -la  # Проверка наличия package-lock.json
+        npm ci --no-audit
         npm run build
         npm run lint --if-present
         npm test --if-present
@@ -57,6 +61,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        path: 'src'
 
     - name: Install Docker tools
       run: |
@@ -66,12 +72,13 @@ jobs:
         sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
 
-    - name: Build and verify Docker images
+    - name: Build Docker images
+      working-directory: ./src
       run: |
         docker-compose -f compose.yaml build
         docker images
 
-    - name: Secure deploy to production
+    - name: Deploy to production
       uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.SERVER_HOST }}
