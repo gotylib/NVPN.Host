@@ -3,6 +3,10 @@
     "Name": "Новый профиль",
     "Projects": [
       {
+        "Path": "nvpn.host.client\\nvpn.host.client.esproj",
+        "Action": "Start"
+      },
+      {
         "Path": "NVPN.Host.Server\\NVPN.Host.Server.csproj",
         "Action": "Start"
       }

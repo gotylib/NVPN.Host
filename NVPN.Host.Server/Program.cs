@@ -36,9 +36,25 @@ try
 
 
     builder.Services.AddHttpClient();
+    
+    // builder.Configuration
+    //     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    //     .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+    builder.Configuration.AddEnvironmentVariables();
+    var connectionString =  "Host=localhost;Port=5432;Database=vpndb;Username=postgres;Password=1234";
 
+    builder.Services.AddCors(options => 
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+    });
+    
     builder.Services.AddDbContext<VpnDbContext>(options =>
-        options.UseNpgsql("Host=localhost;Port=5432;Database=vpndb;Username=postgres;Password=1234",
+        options.UseNpgsql(connectionString,
             npgsqlOptionsAction: npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly("DAL"); // Укажите имя сборки, содержащей миграции
@@ -49,7 +65,7 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
-    if (app.Environment.IsDevelopment())
+    if (app.Environment.IsDevelopment()|| app.Environment.IsProduction())
     {
         app.UseSwagger();
         app.UseSwaggerUI();
@@ -61,7 +77,7 @@ try
     app.UseRouting();
     app.UseMiddleware<CustomExceptionHandlingMiddleware>();
     app.MapFallbackToFile("/index.html");
-
+    app.UseCors("AllowAll");
     app.Run();
 }
 catch (Exception exception)

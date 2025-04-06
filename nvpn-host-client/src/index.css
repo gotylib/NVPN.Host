@@ -1,0 +1,119 @@
+/* Сброс стандартных стилей браузера */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Основные настройки документа */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+/* Стили для корневого элемента */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Общие стили для ссылок */
+a {
+  color: #4f46e5;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+  a:hover {
+      color: #4338ca;
+      text-decoration: underline;
+  }
+
+/* Общие стили для кнопок */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+/* Стили для форм */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Утилитарные классы */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+  }
+
+  to {
+      opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Стили для скроллбара*/
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+  ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+  }
+
+/* Стили для выделения текста */
+::selection {
+  background-color: #4f46e5;
+  color: white;
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+  html {
+      font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+      padding: 0 0.75rem;
+  }
+}

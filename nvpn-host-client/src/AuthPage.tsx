@@ -1,24 +1,109 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import './AuthPage.css';
+
 type FormData = {
     email: string;
     password: string;
     confirmPassword?: string;
 };
 
+type ApiResponse = {
+    success: boolean;
+    data?: string;
+    error?: string;
+};
+
 export default function AuthPage() {
     const [mode, setMode] = useState<'login' | 'register'>('login');
+    const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
     const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
 
-    const onSubmit = (data: FormData) => {
+    const testBackendRequest = async () => {
+        setIsLoading(true);
+        setApiResponse(null);
+        
+        try {
+            // Используем /api префикс для проксирования
+            const response = await fetch('/api/Safety/GenerateAdminKey', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.text();
+            
+            if (response.ok) {
+                setApiResponse({
+                    success: true,
+                    data: data
+                });
+            } else {
+                setApiResponse({
+                    success: false,
+                    error: data
+                });
+            }
+        } catch (error) {
+            setApiResponse({
+                success: false,
+                error: error instanceof Error ? error.message : 'Неизвестная ошибка'
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const onSubmit = async (data: FormData) => {
         console.log('Отправленные данные:', data);
-        // логика авторизации/регистрации
+        
+        // Пример запроса при авторизации
+        try {
+            const response = await fetch('/api/Auth/Login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: data.email,
+                    password: data.password
+                })
+            });
+            
+            const result = await response.json();
+            console.log('Ответ сервера:', result);
+            
+            // Обработка ответа...
+        } catch (error) {
+            console.error('Ошибка авторизации:', error);
+        }
     };
 
     return (
         <div className="auth-container">
             <h2>{mode === 'login' ? 'Вход в аккаунт' : 'Регистрация'}</h2>
+
+            {/* Тестовая кнопка для проверки бэкенда */}
+            <div className="test-backend">
+                <button 
+                    onClick={testBackendRequest}
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Загрузка...' : 'Тест бэкенда'}
+                </button>
+                
+                {apiResponse && (
+                    <div className={`api-response ${apiResponse.success ? 'success' : 'error'}`}>
+                        {apiResponse.success ? (
+                            <p>Успешно! Код: {apiResponse.data}</p>
+                        ) : (
+                            <p>Ошибка: {apiResponse.error}</p>
+                        )}
+                    </div>
+                )}
+            </div>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="form-group">
