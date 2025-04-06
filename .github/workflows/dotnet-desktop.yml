@@ -19,35 +19,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Установка .NET
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.x
 
-    # Бэкенд
     - name: Build and test backend
       run: |
         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet restore {} \;
         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet build {} --configuration Release --no-restore \;
         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet test {} --verbosity normal \;
 
-    # Фронтенд
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 18
 
     - name: Cache Node modules
-      id: npm-cache
       uses: actions/cache@v3
       with:
         path: |
           ./nvpn-host-client/node_modules
           ~/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('./nvpn-host-client/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
 
     - name: Install and build frontend
       working-directory: ./nvpn-host-client
@@ -57,61 +51,50 @@ jobs:
         npm run lint --if-present
         npm test --if-present
 
-    # Проверка структуры файлов для отладки
-    - name: Debug frontend structure
-      working-directory: ./nvpn-host-client
-      run: ls -la
-
   deploy:
     name: Deploy to Production
     needs: build_and_test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-  
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-  
-      - name: Install Docker tools
-        run: |
-          curl -fsSL https://get.docker.com -o get-docker.sh
-          sudo sh get-docker.sh
-          sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-  
-      - name: Build and save Docker images
-        run: |
-          docker-compose -f compose.yaml build
-          
-          # Сохраняем образы в архив
-          mkdir -p docker-images
-          docker save $(docker-compose -f compose.yaml config | awk '{if ($1 == "image:") print $2}') -o docker-images/images.tar
-          ls -lh docker-images/
-  
-      - name: Upload images to server
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-images
-          path: docker-images/images.tar
-  
-      - name: Download and deploy on server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: root
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            echo "Downloading Docker images..."
-            mkdir -p /tmp/docker-images
-            curl -L -o /tmp/images.tar "https://nightly.link/${{ github.repository }}/actions/artifacts/${{ github.run_id }}.zip"
-            unzip /tmp/images.tar -d /tmp/docker-images/
-            
-            echo "Loading Docker images..."
-            docker load -i /tmp/docker-images/images.tar
-            rm -rf /tmp/docker-images /tmp/images.tar
-            
-            echo "Starting containers..."
-            cd $PROJECT_DIR
-            docker-compose down --remove-orphans
-            docker-compose up -d
-            docker system prune -f
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Docker tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl enable --now docker
+        sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+
+    - name: Build and push images
+      run: |
+        # Логинимся в Docker Hub (если используете)
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        
+        # Собираем образы
+        docker-compose -f compose.yaml build
+        
+        # Пушим образы (если используете реестр)
+        docker-compose -f compose.yaml push || echo "Push skipped"
+
+    - name: Deploy to server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        
+        # Копируем файлы на сервер
+        scp -o StrictHostKeyChecking=no -r . root@${{ secrets.SERVER_HOST }}:$PROJECT_DIR
+        
+        # Запускаем deployment на сервере
+        ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} "
+          cd $PROJECT_DIR
+          docker-compose down --remove-orphans
+          docker-compose up -d --build
+          docker system prune -f
+        "
