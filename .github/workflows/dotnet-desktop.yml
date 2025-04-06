@@ -18,8 +18,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        path: 'src'  # Ключевое изменение - кладём всё в src/
 
     # Установка .NET
     - name: Setup .NET
@@ -29,7 +27,6 @@ jobs:
 
     # Бэкенд
     - name: Build and test backend
-      working-directory: ./src
       run: |
         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet restore {} \;
         find . -name "*.csproj" -not -path "*/nvpn-host-client-ts/*" -exec dotnet build {} --configuration Release --no-restore \;
@@ -40,17 +37,30 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 18
-        cache: 'npm'
-        cache-dependency-path: 'src/nvpn-host-client-ts/package-lock.json'
+
+    - name: Cache Node modules
+      id: npm-cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ./nvpn-host-client-ts/node_modules
+          ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('./nvpn-host-client-ts/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
     - name: Install and build frontend
-      working-directory: ./src/nvpn-host-client-ts
+      working-directory: ./nvpn-host-client-ts
       run: |
-        ls -la  # Проверка наличия package-lock.json
         npm ci --no-audit
         npm run build
         npm run lint --if-present
         npm test --if-present
+
+    # Проверка структуры файлов для отладки
+    - name: Debug frontend structure
+      working-directory: ./nvpn-host-client-ts
+      run: ls -la
 
   deploy:
     name: Deploy to Production
@@ -61,8 +71,6 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        path: 'src'
 
     - name: Install Docker tools
       run: |
@@ -73,7 +81,6 @@ jobs:
         sudo chmod +x /usr/local/bin/docker-compose
 
     - name: Build Docker images
-      working-directory: ./src
       run: |
         docker-compose -f compose.yaml build
         docker images
