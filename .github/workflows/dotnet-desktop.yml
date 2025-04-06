@@ -43,14 +43,14 @@ jobs:
       uses: actions/cache@v3
       with:
         path: |
-          ./nvpn-host-client-ts/node_modules
+          ./nvpn-host-client/node_modules
           ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('./nvpn-host-client-ts/package-lock.json') }}
+        key: ${{ runner.os }}-node-${{ hashFiles('./nvpn-host-client/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
 
     - name: Install and build frontend
-      working-directory: ./nvpn-host-client-ts
+      working-directory: ./nvpn-host-client
       run: |
         npm ci --no-audit
         npm run build
@@ -59,7 +59,7 @@ jobs:
 
     # Проверка структуры файлов для отладки
     - name: Debug frontend structure
-      working-directory: ./nvpn-host-client-ts
+      working-directory: ./nvpn-host-client
       run: ls -la
 
   deploy:
