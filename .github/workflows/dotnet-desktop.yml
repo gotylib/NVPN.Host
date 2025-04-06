@@ -63,13 +63,35 @@ jobs:
 
     - name: Install Docker tools
       run: |
-        sudo apt-get remove -y containerd
+        # Полная очистка всех Docker-компонентов
+        sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
+        sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
+        sudo rm -rf /var/lib/docker
+        sudo rm -rf /var/lib/containerd
+        
+        # Установка зависимостей
         sudo apt-get update
-        sudo apt-get install -y docker.io
-        sudo systemctl enable --now docker
+        sudo apt-get install -y ca-certificates curl gnupg
+        
+        # Добавление официального GPG-ключа Docker
+        sudo install -m 0755 -d /etc/apt/keyrings
+        sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+        sudo chmod a+r /etc/apt/keyrings/docker.asc
+        
+        # Добавление репозитория Docker
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        # Установка Docker
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        
+        # Установка Docker Compose
         sudo curl -L "https://github.com/docker/compose/releases/download/${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
-
+        
+        # Запуск Docker
+        sudo systemctl enable --now docker
+    
     - name: Build and push images
       run: |
         # Логинимся в Docker Hub (если используете)
