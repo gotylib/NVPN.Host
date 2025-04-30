@@ -1,9 +1,9 @@
-import AuthPage from './AuthPage';
+import AppRoutes from './Routes.tsx';
 
 function App() {
     return (
         <div className="app">
-            <AuthPage />
+            <AppRoutes />
         </div>
     );
 }
