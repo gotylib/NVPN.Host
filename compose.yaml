@@ -6,19 +6,22 @@ services:
       context: ./nvpn-host-client
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "7000:80"
+      - "7001:443"
     depends_on:
       - backend
     restart: unless-stopped
     networks:
       - vpn-network
+    volumes:
+      - ./nvpn-host-client/ssl:/etc/nginx/ssl:ro
 
   backend:
     build:
       context: .
       dockerfile: NVPN.Host.Server/Dockerfile
     ports:
-      - "8080:8080"
+      - "8181:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
@@ -37,7 +40,7 @@ services:
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: vpndb
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

@@ -11,7 +11,7 @@ public interface IServersControleService
     /// </summary>
     /// <param name="server">Модель сервера</param>
     /// <returns>Результат добавления</returns>
-    Task<bool> AddServerAsync(ServerDto server);
+    Task<bool> AddServerAsync(ServerModel server);
     
     /// <summary>
     /// Удаление сервера vpn.
@@ -25,5 +25,5 @@ public interface IServersControleService
     /// </summary>
     /// <param name="server">Модель сервера</param>
     /// <returns>Результат обновления</returns>
-    Task<bool> UpdateServerAsync(ServerDto server);
+    Task<bool> UpdateServerAsync(ServerModel server);
 }
