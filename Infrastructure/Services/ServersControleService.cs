@@ -24,7 +24,7 @@ public class ServersControleService : IServersControleService
         _logger = logger;
     }
     
-    public async Task<bool> AddServerAsync(ServerDto server)
+    public async Task<bool> AddServerAsync(ServerModel server)
     {
         try
         {
@@ -60,7 +60,7 @@ public class ServersControleService : IServersControleService
         }
     }
 
-    public async Task<bool> UpdateServerAsync(ServerDto server)
+    public async Task<bool> UpdateServerAsync(ServerModel server)
     {
         try
         {

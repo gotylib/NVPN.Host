@@ -17,27 +17,27 @@ public class ServerCommandService : IServerCommandService
         _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
-    public Task<ResultModel<string, Exception>> AddPersonToServer(ServerDto serverDto, UserDto userDto, DateTime? date = null)
+    public Task<ResultModel<string, Exception>> AddPersonToServer(ServerModel serverDto, UserModel userModel, DateTime? date = null)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ResultModel<object, Exception>> AddVpnServer(ServerDto serverDto)
+    public Task<ResultModel<object, Exception>> AddVpnServer(ServerModel serverDto)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ResultModel<ICollection<UserDto>, Exception>> GetUsers(ServerDto serverDto)
+    public Task<ResultModel<ICollection<UserModel>, Exception>> GetUsers(ServerModel serverDto)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ResultModel<object, Exception>> GetVpnServer(ServerDto serverDto)
+    public Task<ResultModel<object, Exception>> GetVpnServer(ServerModel serverDto)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<ResultModel<string, Exception>> Login(ServerDto serverDto)
+    public async Task<ResultModel<string, Exception>> Login(ServerModel serverDto)
     {
         try
         {
@@ -96,24 +96,24 @@ public class ServerCommandService : IServerCommandService
         }
         catch(Exception ex)
         {
-            _logger.LogError(ex, "Произошла необработанная ошибка.");
+            _logger.LogError(ex, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.");
 
             return ResultModel<string, Exception>.CreateFailedResult();
         }
         
     }
 
-    public Task<ResultModel<object, Exception>> RemovePersonFromServer(ServerDto serverDto, UserDto userDto)
+    public Task<ResultModel<object, Exception>> RemovePersonFromServer(ServerModel serverDto, UserModel userModel)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ResultModel<object, Exception>> RemoveVpnServer(ServerDto serverDto)
+    public Task<ResultModel<object, Exception>> RemoveVpnServer(ServerModel serverDto)
     {
         throw new NotImplementedException();
     }
 
-    public Task<ResultModel<object, Exception>> UpdatePersonFromServer(ServerDto serverDto, UserDto userDto, DateTime? date = null)
+    public Task<ResultModel<object, Exception>> UpdatePersonFromServer(ServerModel serverDto, UserModel userModel, DateTime? date = null)
     {
         throw new NotImplementedException();
     }

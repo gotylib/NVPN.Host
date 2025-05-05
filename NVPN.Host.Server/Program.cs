@@ -1,9 +1,12 @@
 using DAL.Context;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Infrastructure.Interfaces;
 using Infrastructure.Mapping;
 using Infrastructure.SafetyService;
 using Infrastructure.Services;
 using Infrastructure.Services.Interfaces;
+using Infrastructure.Validation;
 using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
@@ -24,6 +27,11 @@ try
 
     // Добавление сервисов в контейнер
     builder.Services.AddControllers();
+    
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddFluentValidationClientsideAdapters(); 
+    builder.Services.AddValidatorsFromAssemblyContaining<LoginModelValidator>();
+    
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
     builder.Services.AddAutoMapper(typeof(Mapper));

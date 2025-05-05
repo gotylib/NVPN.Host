@@ -18,13 +18,13 @@ public class ServerController : ControllerBase
     }
     
     [HttpPost("AddServer")]
-    public async Task<ActionResult> AddServer(ServerDto server)
+    public async Task<ActionResult> AddServer(ServerModel server)
     {
         return await _serversControleService.AddServerAsync(server) ? Ok() : BadRequest();
     }
 
     [HttpPut("UpdateServer")]
-    public async Task<ActionResult> UpdateServer(ServerDto server)
+    public async Task<ActionResult> UpdateServer(ServerModel server)
     {
         return await _serversControleService.UpdateServerAsync(server) ? Ok() : BadRequest();
     }

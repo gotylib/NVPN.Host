@@ -1,6 +1,6 @@
 namespace Infrastructure.Dto;
 
-public class ServerDto
+public class ServerModel
 {
     /// <summary>
     /// Id Сервера.

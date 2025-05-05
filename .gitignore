@@ -575,3 +575,9 @@ yarn-error.log*
 /.changelog
 .npm/
 dist
+
+# SSL certificates
+ssl/
+*.crt
+*.key
+*.pem

@@ -8,6 +8,6 @@ public class Mapper : Profile
 {
     public Mapper()
     {
-        CreateMap<ServerDto, Server>().ReverseMap();
+        CreateMap<ServerModel, Server>().ReverseMap();
     }
 }

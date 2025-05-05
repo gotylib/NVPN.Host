@@ -2,7 +2,7 @@
 
 namespace Infrastructure.Dto
 {
-    public class TokenDto
+    public class TokenModel
     {
     }
 }
