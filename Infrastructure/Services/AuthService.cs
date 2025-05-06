@@ -34,7 +34,7 @@ public class AuthService : IAuthService
 
     public ResultModel<string, Exception> LoginUser(LoginModel user)
     {
-        
+        throw new NotImplementedException();
     }
 
     public ResultModel<string, Exception> RegisterUser(RegisterModel user)
