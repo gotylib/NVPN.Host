@@ -9,7 +9,7 @@ on:
 env:
   DOCKER_COMPOSE_VERSION: v2.24.5
   POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-  PROJECT_DIR: "/root/NVPN.Host"
+  PROJECT_DIR: "/home/gleb/NVPN.Host"
 
 jobs:
   build_and_test:
