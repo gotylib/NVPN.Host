@@ -14,6 +14,12 @@ public interface IAuthService
     /// <param name="user">Модель пользователя.</param>
     /// <returns>Jwt токен.</returns>
     ResultModel<string, Exception> GenerateAccessToken(UserModel user);
+    
+    /// <summary>
+    /// Сгенерировать соль, для пароля.
+    /// </summary>
+    /// <returns></returns>
+    ResultModel<string, Exception> GenerateSalt();
 
     /// <summary>
     /// Зарегистрировать пользователя.

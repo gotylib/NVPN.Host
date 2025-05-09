@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using Infrastructure.AnswerObjects;
 using Infrastructure.Dto;
 using Infrastructure.Interfaces;
@@ -32,9 +33,26 @@ public class AuthService : IAuthService
         return ResultModel<string, Exception>.CreateSuccessfulResult(new JwtSecurityTokenHandler().WriteToken(jwt));
     }
 
+    public ResultModel<string, Exception> GenerateSalt()
+    {
+        const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        try
+        {
+            var randomBytes = RandomNumberGenerator.GetBytes(32);
+            var chars = randomBytes.Select(b => validChars[b % validChars.Length]);
+            var result = new string(chars.ToArray());
+
+            return string.IsNullOrEmpty(result) ? ResultModel<string, Exception>.CreateFailedResult(new InvalidOperationException("Failed to generate salt.")) : ResultModel<string, Exception>.CreateSuccessfulResult(result);
+        }
+        catch (Exception ex)
+        {
+            return ResultModel<string, Exception>.CreateFailedResult(ex);
+        }
+    }
+
     public ResultModel<string, Exception> LoginUser(LoginModel user)
     {
-        
+        throw new NotImplementedException();
     }
 
     public ResultModel<string, Exception> RegisterUser(RegisterModel user)

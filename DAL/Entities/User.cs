@@ -54,5 +54,10 @@ public class User
     /// </summary>
     [MaxLength(100)]
     [Comment("Email пользователя.")]
-    public string? Email { get; set; }
+    public required string Email { get; set; }
+    
+    /// <summary>
+    /// Флаг отвечающий за проверку Email.
+    /// </summary>
+    public required bool IsEmailConfirmed { get; set; }
 }
