@@ -1,4 +1,5 @@
 ﻿using DAL;
+using DAL.Entities;
 using Infrastructure.Dto;
 
 namespace Infrastructure.Services.Interfaces
@@ -6,8 +7,7 @@ namespace Infrastructure.Services.Interfaces
     /// <summary>
     /// Сервис для работы с пользователем.
     /// </summary>
-    public interface IUserControleService
+    public interface IUserControlService
     {
-        
     }
 }

@@ -38,8 +38,7 @@ try
 
     builder.Services.AddScoped<IServersControleService, ServersControleService>();
     builder.Services.AddScoped<IServerCommandService, ServerCommandService>();
-    builder.Services.AddScoped<IUserControleService, UserControleService>();
-    builder.Services.AddScoped<IUserControleService, UserControleService>();
+    builder.Services.AddScoped<IUserControlService, UserControlService>();
     builder.Services.AddSingleton<SafetyService>();
 
 
