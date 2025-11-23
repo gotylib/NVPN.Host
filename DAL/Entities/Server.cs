@@ -20,18 +20,11 @@ public class Server
     public string Login { get; set; }
     
     /// <summary>
-    /// Хэшированный админский пароль сервера
+    /// Админский пароль сервера
     /// </summary>
     [MaxLength(50)]
     [Comment("Хэшированный админский пароль сервера")]
-    public string HashPassword { get; set; }
-    
-    /// <summary>
-    /// Случайная строка, которая добавляется к паролю для того, чтьо бы одинаковые пароли были с разным хэшем.
-    /// </summary>
-    [MaxLength(32)]
-    [Comment("Случайная строка, которая добавляется к паролю для того, чтьо бы одинаковые пароли были с разным хэшем.")]
-    public string Salt { get; set; }
+    public string Password { get; set; }
     
     /// <summary>
     /// Ссылка на сервер к которому привязан пользоваетль.

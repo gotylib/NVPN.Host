@@ -3,11 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Context;
 
-public class VpnDbContext : DbContext
+public class VpnDbContext(DbContextOptions<VpnDbContext> options) : DbContext(options)
 {
-    public VpnDbContext(DbContextOptions<VpnDbContext> options) : base(options){}
-    
     public DbSet<User> Users { get; set; }
-    
     public DbSet<Server> Servers { get; set; }
+    
+    public DbSet<VlessProfile>  VlessProfiles { get; set; }
 }

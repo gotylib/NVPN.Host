@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace Infrastructure.Services
 {
-    public class UserControleService : IUserControleService
+    public class UserControlService : IUserControlService
     {
     }
 }
