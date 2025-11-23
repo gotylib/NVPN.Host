@@ -55,4 +55,9 @@ public class User
     [MaxLength(100)]
     [Comment("Email пользователя.")]
     public string? Email { get; set; }
+    
+    /// <summary>
+    /// Vless ссылки пользователя.
+    /// </summary>
+    public List<VlessProfile>? VlessProfiles { get; set; } 
 }

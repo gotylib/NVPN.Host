@@ -9,5 +9,6 @@ public class Mapper : Profile
     public Mapper()
     {
         CreateMap<ServerModel, Server>().ReverseMap();
+        CreateMap<UserModel, User>().ReverseMap();
     }
 }
