@@ -1,4 +1,5 @@
 using DAL.Context;
+using DAL.Entities;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Infrastructure.Interfaces;
@@ -7,7 +8,10 @@ using Infrastructure.SafetyService;
 using Infrastructure.Services;
 using Infrastructure.Services.Interfaces;
 using Infrastructure.Validation;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using NLog;
 using NLog.Web;
 using NVPN.Host.Server.CastomMiddleware;
@@ -26,7 +30,15 @@ try
     builder.Host.UseNLog();
 
     // Добавление сервисов в контейнер
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddOData(options => options
+            .Select()
+            .Filter()
+            .OrderBy()
+            .SetMaxTop(100)
+            .Count()
+            .Expand()
+            .AddRouteComponents("odata", GetEdmModel()));
     
     builder.Services.AddFluentValidationAutoValidation();
     builder.Services.AddFluentValidationClientsideAdapters(); 
@@ -44,13 +56,15 @@ try
 
     builder.Services.AddHttpClient();
     
-    // builder.Configuration
-    //     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    //     .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
-    builder.Configuration.AddEnvironmentVariables();
-    var connectionStringDefault =  "Host=localhost;Port=5432;Database=vpndb;Username=postgres;Password=1234";
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? connectionStringDefault;
-
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    builder.Services.AddDbContext<VpnDbContext>(options =>
+        options.UseNpgsql(connectionString,
+            npgsqlOptionsAction: npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly("DAL"); // Укажите имя сборки, содержащей миграции
+            }));
+    
     builder.Services.AddCors(options => 
     {
         options.AddPolicy("AllowAll", policy =>
@@ -60,15 +74,40 @@ try
                 .AllowAnyHeader();
         });
     });
-    
-    builder.Services.AddDbContext<VpnDbContext>(options =>
-        options.UseNpgsql(connectionString,
-            npgsqlOptionsAction: npgsqlOptions =>
-            {
-                npgsqlOptions.MigrationsAssembly("DAL"); // Укажите имя сборки, содержащей миграции
-            }));
 
     var app = builder.Build();
+
+    // Применение миграций базы данных при запуске приложения
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<VpnDbContext>();
+            var pendingMigrations = context.Database.GetPendingMigrations().ToList();
+            
+            if (pendingMigrations.Any())
+            {
+                logger.Info($"Найдено непримененных миграций: {pendingMigrations.Count}");
+                foreach (var migration in pendingMigrations)
+                {
+                    logger.Info($"  - {migration}");
+                }
+                logger.Info("Применение миграций базы данных...");
+                context.Database.Migrate();
+                logger.Info("Миграции успешно применены.");
+            }
+            else
+            {
+                logger.Info("Все миграции уже применены. Пропускаем применение миграций.");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Ошибка при применении миграций базы данных");
+            throw;
+        }
+    }
 
     app.UseDefaultFiles();
     app.UseStaticFiles();
@@ -80,12 +119,14 @@ try
     }
 
     app.UseHttpsRedirection();
-    app.UseAuthorization();
-    app.MapControllers();
     app.UseRouting();
-    app.UseMiddleware<CustomExceptionHandlingMiddleware>();
-    app.MapFallbackToFile("/index.html");
     app.UseCors("AllowAll");
+    app.UseAuthorization();
+    app.UseMiddleware<CustomExceptionHandlingMiddleware>();
+    
+    app.MapControllers();
+    app.MapFallbackToFile("/index.html");
+    
     app.Run();
 }
 catch (Exception exception)
@@ -96,4 +137,11 @@ catch (Exception exception)
 finally
 {
     LogManager.Shutdown();
+}
+
+static IEdmModel GetEdmModel()
+{
+    var builder = new ODataConventionModelBuilder();
+    builder.EntitySet<User>("Users");
+    return builder.GetEdmModel();
 }

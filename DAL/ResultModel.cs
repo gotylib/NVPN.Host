@@ -58,5 +58,14 @@ namespace DAL
         {
             return new ResultModel<T, E>(false, error);
         }
+        
+        /// <summary>
+        /// Cоздать модель с ошибкой
+        /// </summary>
+        /// <returns>Модель с ошибкой</returns>
+        public static ResultModel<T, E> CreateFailedResult( T? value)
+        {
+            return new ResultModel<T, E>(false, default, value);
+        }
     }
 }
