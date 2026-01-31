@@ -1,35 +1,45 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-
 namespace DAL.Entities;
 
 public class Server
 {
     /// <summary>
-    /// Id Сервера.
+    /// id
     /// </summary>
-    [Key]
-    [Comment("Id Сервера.")]
     public int Id { get; set; }
-    
+
     /// <summary>
-    /// Админский логин сервера
+    /// IP или домен
     /// </summary>
-    [MaxLength(50)]
-    [Comment("Админский логин сервера")]
-    public string Login { get; set; }
-    
+    public string Host { get; set; }
+
+
     /// <summary>
-    /// Админский пароль сервера
+    /// Страна расположения
     /// </summary>
-    [MaxLength(50)]
-    [Comment("Хэшированный админский пароль сервера")]
-    public string Password { get; set; }
-    
+    public string Country { get; set; }
+
+
+    // Админские данные для управления
+
     /// <summary>
-    /// Ссылка на сервер к которому привязан пользоваетль.
+    /// Логин от админки
     /// </summary>
-    [MaxLength(100)]
-    [Comment("Ссылка на сервер к которому привязан пользоваетль.")]
-    public string ServerName { get; set; }
+    public string AdminLogin { get; set; }
+
+    /// <summary>
+    /// Пароль от админки
+    /// </summary>
+    public string AdminPassword { get; set; }
+
+    // Навигационные свойства
+
+    /// <summary>
+    /// Vless конфигурации для подключения пользователей к этому серверу
+    /// </summary>
+    public List<VlessLink> VlessLinks { get; set; } = new List<VlessLink>();
+
+    /// <summary>
+    /// Пользователи на этом сервере
+    /// </summary>
+    public List<User> Users { get; set; } = new List<User>();
 }

@@ -1,21 +1,13 @@
-﻿
-
+﻿using AutoMapper;
 using DAL;
-using Infrastructure.Dto;
-using Infrastructure.Option;
-using Infrastructure.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using AutoMapper;
 using DAL.Context;
 using DAL.Entities;
+using Infrastructure.Dto;
+using Infrastructure.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Infrastructure.Services
 {
@@ -69,10 +61,10 @@ namespace Infrastructure.Services
                 }
 
                 // Обновляем поля пользователя
-                existingUser.Username = userModel.Username;
-                existingUser.Email = userModel.Email;
-                existingUser.VpnLinks = userModel.VpnLinks ?? existingUser.VpnLinks;
-                existingUser.ServerName = userModel.ServerName ?? existingUser.ServerName;
+                //existingUser.Username = userModel.Username;
+                //existingUser.Email = userModel.Email;
+                //existingUser.VlessLinks = userModel.VpnLinks ?? existingUser.VlessLinks;
+                //existingUser.Servers = userModel.ServerName ?? existingUser.Servers;
 
                 // Если пароль изменился - перехешируем его
                 if (!string.IsNullOrWhiteSpace(userModel.Password))

@@ -16,6 +16,7 @@ public class ServerModel
     /// Админский пароль сервера
     /// </summary>
     public string Password { get; set; }
+
     /// <summary>
     /// Ссылка на сервер к которому привязан пользоваетль.
     /// </summary>

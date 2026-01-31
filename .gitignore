@@ -576,6 +576,10 @@ yarn-error.log*
 .npm/
 dist
 
+# 
+appsettings.json
+appsettings.*.json
+
 # SSL certificates
 ssl/
 *.crt

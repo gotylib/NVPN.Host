@@ -1,9 +1,8 @@
-﻿using Infrastructure.Services.Interfaces;
+﻿using Infrastructure.Dto;
+using Infrastructure.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
-using DAL.Entities;
-using Infrastructure.Dto;
-using Microsoft.AspNetCore.Mvc;
 
 namespace NVPN.Host.Server.Controllers;
 
