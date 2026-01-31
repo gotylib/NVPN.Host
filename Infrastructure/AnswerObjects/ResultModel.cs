@@ -3,6 +3,7 @@ namespace Infrastructure.AnswerObjects;
 public class ResultModel<T, E>
 {
     private ResultModel() { }
+
     private ResultModel(bool result) : this(result, default, default) { }
 
     private ResultModel(bool result, E error) : this(result, error, default) { }

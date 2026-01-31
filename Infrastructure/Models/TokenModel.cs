@@ -1,6 +1,4 @@
-﻿
-
-namespace Infrastructure.Dto
+﻿namespace Infrastructure.Dto
 {
     public class TokenModel
     {

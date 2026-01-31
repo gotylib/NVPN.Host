@@ -1,10 +1,4 @@
-﻿
-
-using DAL;
-using Infrastructure.Dto;
-using System;
-
-namespace Infrastructure.Repositories.Interfaces
+﻿namespace Infrastructure.Repositories.Interfaces
 {
     public interface IUserControlRepository
     {
