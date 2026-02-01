@@ -71,7 +71,7 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v6
         with:
-          context: ./NVPN.Host.Server
+          context: .
           file: ./NVPN.Host.Server/Dockerfile
           push: true
           tags: |
